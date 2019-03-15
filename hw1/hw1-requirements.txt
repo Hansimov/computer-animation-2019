@@ -1,0 +1,6 @@
+Homework
+• Write a OpenGL program to create an animation for moon rotating around earth, using the above three methods.
+• Calculate and compare the errors introduced in the three methods.
+• Implementing interpolation of rotation with quaternions
+• Write a report for comparing the three methods and the interpolations.
+• Submit the code and report by Mar. 18.
