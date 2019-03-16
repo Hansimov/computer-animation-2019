@@ -25,6 +25,7 @@
     var r = 5;
     var [vsegs, hsegs] = [20, 20];
 
+    var tmpDot;
     for (var iv=-vsegs; iv<=vsegs; iv++) {
         for (var ih=-hsegs; ih<=hsegs; ih++) {
             angv = iv/vsegs * pi;
@@ -32,28 +33,36 @@
             px = cx + r * sin(angv) * cos(angh);
             py = cy + r * cos(angv);
             pz = cz + r * sin(angv) * sin(angh);
-
-            var tmpDot = new THREE.Vector3(px, py, pz);
+            tmpDot = new THREE.Vector3(px, py, pz);
             dotGeometry.vertices.push(tmpDot);
         }
     }
 
-    // for (var ix=0;ix<10;ix++) {
-    //     for (var iy=0;iy<10;iy++) {
-    //         for (var iz=0;iz<10;iz++){
-    //             var tmpDot = new THREE.Vector3(ix, iy, iz);
-    //             dotGeometry.vertices.push(tmpDot);
-    //         }
-    //     }
-    // }
-
     var dots = new THREE.Points(dotGeometry, dotMaterial);
     scene.add(dots);
 
+    var delta=0;
     var render = function() {
         requestAnimationFrame(render);
-        dots.rotation.x += 0.01;
-        dots.rotation.y += 0.02;
+        // dots.rotation.x += 0.01;
+        // dots.rotation.y += 0.02;
+        delta += 0.01;
+
+        dotGeometry.vertices = [];
+        dots.geometry.verticesNeedUpdate = true;
+
+        for (var iv=-vsegs; iv<=vsegs; iv++) {
+            for (var ih=-hsegs; ih<=hsegs; ih++) {
+                angv = iv/vsegs * pi;
+                angh = ih/hsegs * pi + delta/5*pi;
+                px = cx + r * sin(angv) * cos(angh);
+                py = cy + r * cos(angv);
+                pz = cz + r * sin(angv) * sin(angh);
+                tmpDot = new THREE.Vector3(px, py, pz);
+                dotGeometry.vertices.push(tmpDot);
+            }
+        }
+
         renderer.render(scene, camera);
     }
     render();
