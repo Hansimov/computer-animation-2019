@@ -12,6 +12,9 @@
 <canvas id="m3"></canvas>
 
 <script>
+    Number.prototype.toDeci = function (n) {
+        return parseFloat(this.toFixed(n));
+    }
     var pi=Math.PI, sin=Math.sin, cos=Math.cos;
     // Initial setup
     var scene1 = new THREE.Scene();
@@ -31,6 +34,7 @@
     var dotGeometry2 = new THREE.Geometry();
     var dotGeometry3 = new THREE.Geometry();
     var dotMaterial = new THREE.PointsMaterial({size: 0.05, sizeAttenuation: true, color:0xffff00});
+    var lineMaterial = new THREE.PointsMaterial({sizeAttenuation: true, color:0xff00ff});
 
     var px, py, pz, angv, angh;
     var [cx, cy, cz] = [7, 0, 0];
@@ -57,12 +61,22 @@
     var dots1 = new THREE.Points(dotGeometry1, dotMaterial);
     var dots2 = new THREE.Points(dotGeometry2, dotMaterial);
     var dots3 = new THREE.Points(dotGeometry3, dotMaterial);
+    var lineGeometry1 = new THREE.Geometry();
+    var lineGeometry2 = new THREE.Geometry();
+    var lineGeometry3 = new THREE.Geometry();
+    lineGeometry1.vertices.push(new THREE.Vector3(0,0,0), new THREE.Vector3(cx,0,0));
+    lineGeometry2.vertices.push(new THREE.Vector3(0,0,0), new THREE.Vector3(cx,0,0));
+    lineGeometry3.vertices.push(new THREE.Vector3(0,0,0), new THREE.Vector3(cx,0,0));
+    var line0 = [];
+    line0.push([0,0,0], [cx,0,0]);
+    var line1 = new THREE.Line(lineGeometry1, lineMaterial);
+    var line2 = new THREE.Line(lineGeometry2, lineMaterial);
+    var line3 = new THREE.Line(lineGeometry3, lineMaterial);
+    scene1.add(dots1); scene1.add(line1);
+    scene2.add(dots2); scene2.add(line2);
+    scene3.add(dots3); scene3.add(line3);
 
-    scene1.add(dots1);
-    scene2.add(dots2);
-    scene3.add(dots3);
-
-    delta = 0.01;
+    delta = 0.02;
     var rot = [cos(delta), sin(delta), -sin(delta), cos(delta)];
 
 // Method 1 :
@@ -70,8 +84,6 @@
 //   apply a delta z-axis transformation matrix to the moon’s points,
 //   in which each delta represents the angle it moves in one frame time
 // P = Rdz * P
-    // var delta1 = delta;
-    // var rot1 = [cos(delta1), sin(delta1), -sin(delta1), cos(delta1)];
     var render1 = function() {
         dots1.geometry.verticesNeedUpdate = true;
         var dgv1;
@@ -79,12 +91,15 @@
         for (var i=0; i<dots1.geometry.vertices.length; i++) {
             dgv1 = dots1.geometry.vertices[i];
             [pxp1, pyp1, pzp1] = [dgv1["x"], dgv1["y"], dgv1["z"]];
-            dgv1["x"] = parseFloat((pxp1 * rot[0] + pzp1 * rot[1]).toFixed(2));
-            dgv1["z"] = parseFloat((pxp1 * rot[2] + pzp1 * rot[3]).toFixed(2));
-
-            // dgv1["x"] = pxp1 * cos(delta1) + pzp1 * sin(delta1);
-            // dgv1["z"] = -pxp1 * sin(delta1) + pzp1 * cos(delta1);
+            dgv1["x"] = (pxp1 * rot[0] + pzp1 * rot[1]).toDeci(2);
+            dgv1["z"] = (pxp1 * rot[2] + pzp1 * rot[3]).toDeci(2);
         }
+        line1.geometry.verticesNeedUpdate = true;
+        var c1 = line1.geometry.vertices;
+        [c1[1]["x"], c1[1]["z"]] = [
+            c1[1]["x"] * rot[0] + c1[1]["z"] * rot[1],
+            c1[1]["x"] * rot[2] + c1[1]["z"] * rot[3]];
+
         renderer1.render(scene1, camera);
         requestAnimationFrame(render1);
     }
@@ -94,27 +109,31 @@
 //  to incrementally modify the transformation matrix that 
 //  takes the object space points into the world space positions.
 // R = R * Rdz; P = R * P;
-    // var delta2 = delta;
-    // var idmat = [1,0,0,1];
     var rot2 = [1,0,0,1];
     var render2 = function() {
         dots2.geometry.verticesNeedUpdate = true;
 
         rot2 = [
-            parseFloat((rot2[0] * rot[0] + rot2[1] * rot[2]).toFixed(2)),
-            parseFloat((rot2[0] * rot[1] + rot2[1] * rot[3]).toFixed(2)),
-            parseFloat((rot2[2] * rot[0] + rot2[3] * rot[2]).toFixed(2)),
-            parseFloat((rot2[2] * rot[1] + rot2[3] * rot[3]).toFixed(2))
+            (rot2[0] * rot[0] + rot2[1] * rot[2]).toDeci(2),
+            (rot2[0] * rot[1] + rot2[1] * rot[3]).toDeci(2),
+            (rot2[2] * rot[0] + rot2[3] * rot[2]).toDeci(2),
+            (rot2[2] * rot[1] + rot2[3] * rot[3]).toDeci(2)
         ];
         var dgv2;
         var pxp2, pyp2, pzp2;
         for (var i=0; i<dots2.geometry.vertices.length; i++) {
             dgv2 = dots2.geometry.vertices[i];
             [pxp2, pyp2, pzp2] = vertices[i];
-            dgv2["x"] = parseFloat((pxp2 * rot2[0] + pzp2 * rot2[1]).toFixed(2));
-            dgv2["z"] = parseFloat((pxp2 * rot2[2] + pzp2 * rot2[3]).toFixed(2));
+            dgv2["x"] = (pxp2 * rot2[0] + pzp2 * rot2[1]).toDeci(2);
+            dgv2["z"] = (pxp2 * rot2[2] + pzp2 * rot2[3]).toDeci(2);
         }
-        // console.log(dgv2["x"]);
+
+        line2.geometry.verticesNeedUpdate = true;
+        var c2 = line2.geometry.vertices;
+        [c2[1]["x"], c2[1]["z"]] = [
+            line0[1][0] * rot2[0] + line0[1][2] * rot2[1],
+            line0[1][0] * rot2[2] + line0[1][2] * rot2[3]];
+
         renderer2.render(scene2, camera);
         requestAnimationFrame(render2);
     }
@@ -128,18 +147,27 @@
     var render3 = function () {
         dots3.geometry.verticesNeedUpdate = true;
         delta3 += delta;
+        rot3 = [cos(delta3), sin(delta3), -sin(delta3), cos(delta3)];
 
         dots3.geometry.vertices = [];
         var pxp3, pyp3, pzp3;
         var px3, py3, pz3;
         for (var i=0; i<vertices.length; i++) {
             [pxp3,pyp3,pzp3] = vertices[i];
-            px3 = pxp3 * cos(delta3) + pzp3 * sin(delta3);
+            px3 = pxp3 * rot3[0] + pzp3 * rot3[1];
             py3 = pyp3;
-            pz3 = -pxp3 * sin(delta3) + pzp3 * cos(delta3);
-            tmpDot = new THREE.Vector3(parseFloat(px3.toFixed(2)), parseFloat(py3.toFixed(2)), parseFloat(pz3.toFixed(2)));
+            pz3 = pxp3 * rot3[2] + pzp3 * rot3[3];
+            tmpDot = new THREE.Vector3(px3.toDeci(2), py3.toDeci(2), pz3.toDeci(2));
             dotGeometry3.vertices.push(tmpDot);
         }
+
+        line3.geometry.verticesNeedUpdate = true;
+        // line3.geometry.vertices = [];
+        var c3 = line3.geometry.vertices;
+        [c3[1]["x"], c3[1]["z"]] = [
+            line0[1][0] * rot3[0] + line0[1][2] * rot3[1],
+            line0[1][0] * rot3[2] + line0[1][2] * rot3[3]];
+
         renderer3.render(scene3, camera);
         requestAnimationFrame(render3);
     }
