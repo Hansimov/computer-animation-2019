@@ -6,31 +6,39 @@
 
 <body>
 <canvas id="m1"></canvas>
+<hr>
 <canvas id="m2"></canvas>
+<hr>
 <canvas id="m3"></canvas>
 
 <script>
     var pi=Math.PI, sin=Math.sin, cos=Math.cos;
     // Initial setup
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(90, window.innerWidth/window.innerHeight*3, 0.1, 1000);
-    camera.position.z = 10;
+    var scene1 = new THREE.Scene();
+    var scene2 = new THREE.Scene();
+    var scene3 = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight*3, 0.1, 1000);
+    camera.position.z = 14;
 
     var renderer1 = new THREE.WebGLRenderer({canvas:m1,antialias:true});
     renderer1.setSize(window.innerWidth, window.innerHeight/3);
-    // document.body.appendChild(renderer.domElement);
+    var renderer2 = new THREE.WebGLRenderer({canvas:m2,antialias:true});
+    renderer2.setSize(window.innerWidth, window.innerHeight/3);
     var renderer3 = new THREE.WebGLRenderer({canvas:m3,antialias:true});
     renderer3.setSize(window.innerWidth, window.innerHeight/3);
 
-    var dotGeometry = new THREE.Geometry();
+    var dotGeometry1 = new THREE.Geometry();
+    var dotGeometry2 = new THREE.Geometry();
+    var dotGeometry3 = new THREE.Geometry();
     var dotMaterial = new THREE.PointsMaterial({size: 0.05, sizeAttenuation: true, color:0xffff00});
 
     var px, py, pz, angv, angh;
-    var [cx, cy, cz] = [6, 0, 0];
-    var r = 1;
+    var [cx, cy, cz] = [7, 0, 0];
+    var r = 2.5;
     var [vsegs, hsegs] = [20, 20];
 
     var tmpDot;
+    var vertices = [];
     for (var iv=-vsegs; iv<=vsegs; iv++) {
         for (var ih=-hsegs; ih<=hsegs; ih++) {
             angv = iv/vsegs * pi;
@@ -39,45 +47,107 @@
             py = cy + r * cos(angv);
             pz = cz + r * sin(angv) * sin(angh);
             tmpDot = new THREE.Vector3(px, py, pz);
-            dotGeometry.vertices.push(tmpDot);
+            dotGeometry1.vertices.push(tmpDot);
+            dotGeometry2.vertices.push(tmpDot);
+            dotGeometry3.vertices.push(tmpDot);
+            vertices.push([px,py,pz]);
         }
     }
 
-    var dots = new THREE.Points(dotGeometry, dotMaterial);
-    scene.add(dots);
+    var dots1 = new THREE.Points(dotGeometry1, dotMaterial);
+    var dots2 = new THREE.Points(dotGeometry2, dotMaterial);
+    var dots3 = new THREE.Points(dotGeometry3, dotMaterial);
 
-    var delta=0;
-    var render = function() {
-        requestAnimationFrame(render);
-        // dots.rotation.x += 0.01;
-        // dots.rotation.y += 0.02;
-        dots.geometry.verticesNeedUpdate = true;
+    scene1.add(dots1);
+    scene2.add(dots2);
+    scene3.add(dots3);
 
-        delta = 0.1;
+    delta = 10;
+    var rot = [cos(delta), sin(delta), -sin(delta), cos(delta)];
 
-        // dotGeometry.vertices = [];
-        for (var i=0; i<dots.geometry.vertices.length; i++) {
-            var dgv = dots.geometry.vertices[i];
-            dgv["x"] = dgv["x"] * cos(delta) + dgv["z"] * sin(delta);
-            dgv["z"] = -dgv["x"] * sin(delta) + dgv["z"] * cos(delta);
-            // console.log(dots.geometry.vertices[i][0]);
+// Method 1 :
+// For each frame of the animation, 
+//   apply a delta z-axis transformation matrix to the moon’s points,
+//   in which each delta represents the angle it moves in one frame time
+// P = Rdz * P
+    // var delta1 = delta;
+    // var rot1 = [cos(delta1), sin(delta1), -sin(delta1), cos(delta1)];
+    var render1 = function() {
+        dots1.geometry.verticesNeedUpdate = true;
+        var dgv1;
+        var pxp1, pyp1, pzp1;
+        for (var i=0; i<dots1.geometry.vertices.length; i++) {
+            dgv1 = dots1.geometry.vertices[i];
+            [pxp1, pyp1, pzp1] = [dgv1["x"], dgv1["y"], dgv1["z"]];
+            dgv1["x"] = pxp1 * rot[0] + pzp1 * rot[1];
+            dgv1["z"] = pxp1 * rot[2] + pzp1 * rot[3];
+            // dgv1["x"] = pxp1 * cos(delta1) + pzp1 * sin(delta1);
+            // dgv1["z"] = -pxp1 * sin(delta1) + pzp1 * cos(delta1);
         }
-
-        // for (var iv=-vsegs; iv<=vsegs; iv++) {
-        //     for (var ih=-hsegs; ih<=hsegs; ih++) {
-        //         angv = iv/vsegs * pi;
-        //         angh = ih/hsegs * pi + delta/5*pi;
-        //         px = cx + r * sin(angv) * cos(angh);
-        //         py = cy + r * cos(angv);
-        //         pz = cz + r * sin(angv) * sin(angh);
-        //         tmpDot = new THREE.Vector3(px, py, pz);
-        //         dotGeometry.vertices.push(tmpDot);
-        //     }
-        // }
-
-        renderer3.render(scene, camera);
+        renderer1.render(scene1, camera);
+        requestAnimationFrame(render1);
     }
-    render();
+
+// Method 2:
+// For each frame, 
+//  to incrementally modify the transformation matrix that 
+//  takes the object space points into the world space positions.
+// R = R * Rdz; P = R * P;
+    // var delta2 = delta;
+    // var idmat = [1,0,0,1];
+    var rot2 = [1,0,0,1];
+    var render2 = function() {
+        dots2.geometry.verticesNeedUpdate = true;
+
+        rot2 = [
+            rot2[0] * rot[0] + rot2[1] * rot[2],
+            rot2[0] * rot[1] + rot2[1] * rot[3],
+            rot2[2] * rot[0] + rot2[3] * rot[2],
+            rot2[2] * rot[1] + rot2[3] * rot[3]
+        ];
+        var dgv2;
+        var pxp2, pyp2, pzp2;
+        for (var i=0; i<dots2.geometry.vertices.length; i++) {
+            dgv2 = dots2.geometry.vertices[i];
+            [pxp2, pyp2, pzp2] = vertices[i];
+            dgv2["x"] = pxp2 * rot2[0] + pzp2 * rot2[1];
+            dgv2["z"] = pxp2 * rot2[2] + pzp2 * rot2[3];
+        }
+        // console.log(dgv2[0][0]);
+        renderer2.render(scene2, camera);
+        requestAnimationFrame(render2);
+    }
+
+
+// Method 3:
+// Add the delta value to an accumulating angle variable
+// and then build the z-axis rotation matrix from that angle parameter.
+// z' = z+5 -> R' = R(z')
+
+    var delta3 = 0;
+    var render3 = function () {
+        dots3.geometry.verticesNeedUpdate = true;
+        delta3 += delta;
+
+        dots3.geometry.vertices = [];
+        var pxp3, pyp3, pzp3;
+        var px3, py3, pz3;
+        for (var i=0; i<vertices.length; i++) {
+            [pxp3,pyp3,pzp3] = vertices[i];
+            px3 = pxp3 * cos(delta3) + pzp3 * sin(delta3);
+            py3 = pyp3;
+            pz3 = -pxp3 * sin(delta3) + pzp3 * cos(delta3);
+            tmpDot = new THREE.Vector3(px3, py3, pz3);
+            dotGeometry3.vertices.push(tmpDot);
+        }
+        renderer3.render(scene3, camera);
+        requestAnimationFrame(render3);
+    }
+
+    render1();
+    render2();
+    render3();
+
 </script>
 </body>
 
