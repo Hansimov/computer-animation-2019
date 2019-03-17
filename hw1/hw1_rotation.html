@@ -85,6 +85,39 @@
 //   apply a delta z-axis transformation matrix to the moon’s points,
 //   in which each delta represents the angle it moves in one frame time
 // P = Rdz * P
+
+    var cnt1=0, cnt2=0, cnt3=0;
+    var canvas1 = document.getElementById("m1");
+    var canvas2 = document.getElementById("m2");
+    var canvas3 = document.getElementById("m3");
+
+    var text1 = document.createElement('div');
+    var text2 = document.createElement('div');
+    var text3 = document.createElement('div');
+    text1.style.position = 'absolute';
+    text2.style.position = 'absolute';
+    text3.style.position = 'absolute';
+    //text1.style.zIndex = 1;
+
+    text1.style.color = "cyan";
+    text1.innerHTML = "";
+    text1.style.top = canvas1.offsetTop + 10 + 'px';
+    text1.style.left = canvas1.offsetLeft + 10 + 'px';
+
+    text2.style.color = "cyan";
+    text2.innerHTML = "";
+    text2.style.top = canvas2.offsetTop + 10 + 'px';
+    text2.style.left = canvas2.offsetLeft + 10 + 'px';
+
+    text3.style.color = "cyan";
+    text3.innerHTML = "";
+    text3.style.top = canvas3.offsetTop + 10 + 'px';
+    text3.style.left = canvas3.offsetLeft + 10 + 'px';
+
+    document.body.appendChild(text1);
+    document.body.appendChild(text2);
+    document.body.appendChild(text3);
+
     var render1 = function() {
         dots1.geometry.verticesNeedUpdate = true;
         var dgv1;
@@ -100,6 +133,8 @@
         [c1[1]["x"], c1[1]["z"]] = [
             c1[1]["x"] * rot[0] + c1[1]["z"] * rot[1],
             c1[1]["x"] * rot[2] + c1[1]["z"] * rot[3]];
+
+        text1.innerHTML = "Steps: " + (cnt1++).toString();
 
         renderer1.render(scene1, camera);
         requestAnimationFrame(render1);
@@ -135,6 +170,8 @@
             line0[1][0] * rot2[0] + line0[1][2] * rot2[1],
             line0[1][0] * rot2[2] + line0[1][2] * rot2[3]];
 
+        text2.innerHTML = "Steps: " + (cnt2++).toString();
+
         renderer2.render(scene2, camera);
         requestAnimationFrame(render2);
     };
@@ -169,6 +206,7 @@
             line0[1][0] * rot3[0] + line0[1][2] * rot3[1],
             line0[1][0] * rot3[2] + line0[1][2] * rot3[3]];
 
+        text3.innerHTML = "Steps: " + (cnt3++).toString();
         renderer3.render(scene3, camera);
         requestAnimationFrame(render3);
     };

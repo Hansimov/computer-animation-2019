@@ -97,13 +97,11 @@
             }
             return nn;
         }
-
         var qq = new THREE.Quaternion();
         qq.x = slerpN(q1.x, q2.x, t, theta);
         qq.y = slerpN(q1.y, q2.y, t, theta);
         qq.z = slerpN(q1.z, q2.z, t, theta);
         qq.w = slerpN(q1.w, q2.w, t, theta);
-
         return qq.normalize();
     }
 

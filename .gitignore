@@ -1,1 +1,5 @@
 *.pdf
+*.txt
+*.fmt
+*.log
+latex-temp/
