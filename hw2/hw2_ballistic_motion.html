@@ -1,0 +1,115 @@
+<html>
+<head>
+  <!-- <style>canvas {width: 100%; height: 100% }</style> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+</head>
+
+<body>
+<canvas id="m"></canvas>
+
+<script>
+    Number.prototype.toDeci = function (n) {
+        return parseFloat(this.toFixed(n));
+    }
+    var pi=Math.PI, sin=Math.sin, cos=Math.cos;
+    // Initial setup
+    var scene = new THREE.Scene();
+    var ratio = 1.05;
+    var camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight*ratio, 0.1, 1000);
+    camera.position.z = 14;
+    camera.position.x = 8;
+
+    var renderer = new THREE.WebGLRenderer({canvas:m,antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight/ratio);
+
+    var dotGeometry1 = new THREE.Geometry();
+    var dotGeometry2 = new THREE.Geometry();
+    var dotGeometry3 = new THREE.Geometry();
+    var dotMaterial1 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0xff00ff});
+    var dotMaterial2 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0xffff00});
+    var dotMaterial3 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0x00ffff});
+
+    var cnt=0;
+    var canvas = document.getElementById("m");
+
+    var text = document.createElement('div');
+    text.style.position = 'absolute';
+    var textPrefix = "<p style='display:inline;color:#ec8eff;'>Steps:</p> ";
+    var textColor = "cyan";
+    text.style.color = textColor;
+    text.innerHTML = "";
+    text.style.top = canvas.offsetTop + 10 + 'px';
+    text.style.left = canvas.offsetLeft + 10 + 'px';
+    document.body.appendChild(text);
+
+
+    dotGeometry1.vertices.push(new THREE.Vector3(0,0,0));
+    dotGeometry2.vertices.push(new THREE.Vector3(0,0,0));
+    dotGeometry3.vertices.push(new THREE.Vector3(0,0,0));
+
+    var dot1 = new THREE.Points(dotGeometry1, dotMaterial1);
+    var dot2 = new THREE.Points(dotGeometry2, dotMaterial2);
+    var dot3 = new THREE.Points(dotGeometry3, dotMaterial3);
+    scene.add(dot1);
+    scene.add(dot2);
+    scene.add(dot3);
+
+    bullet1 = dot1.geometry.vertices[0];
+    bullet2 = dot2.geometry.vertices[0];
+    bullet3 = dot3.geometry.vertices[0];
+
+/*  Write an 3D artillery simulator
+A gun at (0,0,0). Take in: mass of the projectile, amount of powder, azimuth, elevation of the gun barrel.
+
+Use the amount of powder and the mass of the projectile to determine the muzzle velocity.
+Account for gravity and air friction.
+Assume that one kilogram of powder produces 10,000 newtons of force.
+Assume instantaneous acceleration as a result of the powder going off.
+Air friction coefficient is constant. Set it to be 50 kg/s initially.
+
+The gun and target are both on the X-Z plane.
+
+*/
+
+var vx = 15;
+var vy = 15;
+var k = 0.01;   // air friction coefficient
+var g = 10;     // gravity acceleration
+var dt = 0.01;  // time unit
+
+var x3 = 0, y3 = 0;
+var render = function() {
+
+    dot1.geometry.verticesNeedUpdate = true;
+    dot2.geometry.verticesNeedUpdate = true;
+    dot3.geometry.verticesNeedUpdate = true;
+
+// Method 1: Euler's method
+    vx = vx - k * vx;
+    vy = vy - k * vy - g*dt;
+    x3 += dt * vx;
+    y3 += dt * vy;
+    bullet3.x = x3;
+    bullet3.y = y3;
+    dot3.geometry.vertices.push(new THREE.Vector3(x3, y3, 0));
+    // console.log(x3,y3);
+    // console.log(dot2.)
+
+// Method 2: Mid-point
+
+
+// Method 3: 4th order Runge-Kutta
+
+    text.innerHTML = textPrefix + (cnt++).toString();
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+
+};
+
+render();
+
+
+</script>
+</body>
+
+</html>
