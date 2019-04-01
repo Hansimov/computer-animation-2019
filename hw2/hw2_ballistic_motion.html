@@ -27,9 +27,9 @@
     var dotGeometry1 = new THREE.Geometry();
     var dotGeometry2 = new THREE.Geometry();
     var dotGeometry3 = new THREE.Geometry();
-    var dotMaterial1 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0xff00ff});
-    var dotMaterial2 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0xffff00});
-    var dotMaterial3 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0x00ffff});
+    var dotMaterial1 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0x00ffff});
+    var dotMaterial2 = new THREE.PointsMaterial({size: 0.3, sizeAttenuation: true, color:0xff00ff});
+    var dotMaterial3 = new THREE.PointsMaterial({size: 0.2, sizeAttenuation: true, color:0xffff00});
 
     var cnt=0;
     var canvas = document.getElementById("m");
@@ -37,16 +37,21 @@
     var text = document.createElement('div');
     text.style.position = 'absolute';
     var textPrefix = "<p style='display:inline;color:#ec8eff;'>Steps:</p> ";
-    var textColor = "cyan";
-    text.style.color = textColor;
-    text.innerHTML = "";
+    text.style.color = "white";
+    text.innerHTML = textPrefix;
     text.style.top = canvas.offsetTop + 10 + 'px';
     text.style.left = canvas.offsetLeft + 10 + 'px';
     document.body.appendChild(text);
 
-    // dotGeometry1.vertices.push(new THREE.Vector3(0,0,0));
-    // dotGeometry2.vertices.push(new THREE.Vector3(0,0,0));
-    // dotGeometry3.vertices.push(new THREE.Vector3(0,0,0));
+    var legends = document.createElement('div');
+    legends.style.position = 'absolute';
+    legends.innerHTML = "<p style='color:#00ffff;'> Euler's Method </p>\
+                         <p style='color:#ff00ff;'> Midpoint Method </p>\
+                         <p style='color:#ffff00;'> Runge-Kutta Method </p>";
+    legends.style.top = canvas.offsetTop + 60 + 'px';
+    legends.style.left = canvas.offsetLeft + 10 + 'px';
+    document.body.appendChild(legends);
+    // cyan,purple,yellow
 
     for (var i=0; i<500; i++) {
         dotGeometry1.vertices.push(new THREE.Vector3(0,0,0));
@@ -60,7 +65,6 @@
     scene.add(dot1);
     scene.add(dot2);
     scene.add(dot3);
-    scene.add(dot0);
 
     // bullet1 = dot1.geometry.vertices[0];
     // bullet2 = dot2.geometry.vertices[0];
@@ -85,21 +89,15 @@ Equation:
 x(n+1) = x(n) + v(n)*dt
 v' = a = f/m = kv/m = k/m * v
 
-1. Euler's method:
-    v(n+1) = v(n) + dt * k/m * v(n)
-2. Mid-point:
-    v(n+1) = v(n) + dt/ * k/m * v()
-
 */
-
 
     var vx1=15, vy1=15, x1=0, y1=0;
     var vx2=15, vy2=15, x2=0, y2=0;
     var vx3=15, vy3=15, x3=0, y3=0;
 
-    var k = 0.8;      // air friction coefficient
+    var k = 0.8;    // air friction coefficient
     var g = 10;     // gravity acceleration
-    var dt = 0.08;  // time unit
+    var dt = 0.02;  // time unit
 
     function fx(vx){
         return -k*vx;
@@ -142,7 +140,7 @@ v' = a = f/m = kv/m = k/m * v
         dot2.geometry.verticesNeedUpdate = true;
         dot3.geometry.verticesNeedUpdate = true;
 
-        // Method 1:(Purple) Euler's method 
+        // Method 1:(Cyan) Euler's method 
         if (y1>=0) {
             vx1 = eulerX(vx1, dt);
             vy1 = eulerY(vy1, dt);
@@ -152,7 +150,7 @@ v' = a = f/m = kv/m = k/m * v
             dot1.geometry.vertices[cnt].y = y1;
         }
 
-        // Method 2:(Yellow) Mid-point
+        // Method 2:(Purple) Mid-point
         if (y2>=0) {
             vx2 = midpointX(vx2, dt);
             vy2 = midpointY(vy2, dt);
@@ -162,7 +160,7 @@ v' = a = f/m = kv/m = k/m * v
             dot2.geometry.vertices[cnt].y = y2;
         }
 
-        // Method 3:(Cyan) 4th order Runge-Kutta
+        // Method 3:(Yellow) 4th order Runge-Kutta
         if (y3>=0) {
             vx3 = rkX(vx3, dt);
             vy3 = rkY(vy3, dt);
