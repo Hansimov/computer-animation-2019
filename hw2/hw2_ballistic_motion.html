@@ -42,10 +42,15 @@
     text.style.left = canvas.offsetLeft + 10 + 'px';
     document.body.appendChild(text);
 
+    // dotGeometry1.vertices.push(new THREE.Vector3(0,0,0));
+    // dotGeometry2.vertices.push(new THREE.Vector3(0,0,0));
+    // dotGeometry3.vertices.push(new THREE.Vector3(0,0,0));
 
-    dotGeometry1.vertices.push(new THREE.Vector3(0,0,0));
-    dotGeometry2.vertices.push(new THREE.Vector3(0,0,0));
-    dotGeometry3.vertices.push(new THREE.Vector3(0,0,0));
+    for (var i=0; i<1000; i++) {
+        dotGeometry1.vertices.push(new THREE.Vector3(0,0,0));
+        dotGeometry2.vertices.push(new THREE.Vector3(0,0,0));
+        dotGeometry3.vertices.push(new THREE.Vector3(0,0,0));
+    }
 
     var dot1 = new THREE.Points(dotGeometry1, dotMaterial1);
     var dot2 = new THREE.Points(dotGeometry2, dotMaterial2);
@@ -69,44 +74,56 @@ Air friction coefficient is constant. Set it to be 50 kg/s initially.
 
 The gun and target are both on the X-Z plane.
 
+Equation:
+
+1. Euler's method:
+    v' = a = f/m = kv/m = k/m * v
+    v(n+1) = v(n) + dt * k/m * v(n)
+
 */
 
-var vx = 15;
-var vy = 15;
-var k = 0.01;   // air friction coefficient
-var g = 10;     // gravity acceleration
-var dt = 0.01;  // time unit
+// function f(x,y){
+    
+// }
+// function eulerMethod(f, x0, y0, x2, dt) {
 
-var x3 = 0, y3 = 0;
-var render = function() {
+// }
 
-    dot1.geometry.verticesNeedUpdate = true;
-    dot2.geometry.verticesNeedUpdate = true;
-    dot3.geometry.verticesNeedUpdate = true;
+    var vx = 17;
+    var vy = 15;
+    var k = 0.01;   // air friction coefficient
+    var g = 10;     // gravity acceleration
+    var dt = 0.01;  // time unit
 
-// Method 1: Euler's method
-    vx = vx - k * vx;
-    vy = vy - k * vy - g*dt;
-    x3 += dt * vx;
-    y3 += dt * vy;
-    bullet3.x = x3;
-    bullet3.y = y3;
-    dot3.geometry.vertices.push(new THREE.Vector3(x3, y3, 0));
-    // console.log(x3,y3);
-    // console.log(dot2.)
+    var x3 = 0, y3 = 0;
 
-// Method 2: Mid-point
+    var render = function() {
+        // dot1.geometry.verticesNeedUpdate = true;
+        // dot2.geometry.verticesNeedUpdate = true;
+        dot3.geometry.verticesNeedUpdate = true;
+
+    // Method 1: Euler's method
+        vx = vx - dt * k * vx;
+        vy = vy - dt * k * vy - g*dt;
+
+        
+        dot3.geometry.vertices[cnt].x = x3;
+        dot3.geometry.vertices[cnt].y = y3;
+
+    // Method 2: Mid-point
 
 
-// Method 3: 4th order Runge-Kutta
+    // Method 3: 4th order Runge-Kutta
 
-    text.innerHTML = textPrefix + (cnt++).toString();
-    renderer.render(scene, camera);
-    requestAnimationFrame(render);
+        text.innerHTML = textPrefix + (cnt++).toString();
+        renderer.render(scene, camera);
 
-};
+        if (y3<0) return;
+        requestAnimationFrame(render);
 
-render();
+    };
+
+    render();
 
 
 </script>
