@@ -120,14 +120,14 @@ v' = a = f/m = kv/m = k/m * v
         return vy + dt*fy(vy+dt/2*fy(vy));
     }
 
-    function rkX(vx, dt) {
+    function rk4X(vx, dt) {
         var k1 = fx(vx);
         var k2 = fx(vx+dt/2*k1);
         var k3 = fx(vx+dt/2*k2);
         var k4 = fx(vx+dt*k3);
         return vx + dt/6*(k1+2*k2+2*k3+k4);
     }
-    function rkY(vy, dt) {
+    function rk4Y(vy, dt) {
         var k1 = fy(vy);
         var k2 = fy(vy+dt/2*k1);
         var k3 = fy(vy+dt/2*k2);
@@ -162,8 +162,8 @@ v' = a = f/m = kv/m = k/m * v
 
         // Method 3:(Yellow) 4th order Runge-Kutta
         if (y3>=0) {
-            vx3 = rkX(vx3, dt);
-            vy3 = rkY(vy3, dt);
+            vx3 = rk4X(vx3, dt);
+            vy3 = rk4Y(vy3, dt);
             x3 += vx3 * dt;
             y3 += vy3 * dt;
             dot3.geometry.vertices[cnt].x = x3;

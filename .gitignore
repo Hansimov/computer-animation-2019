@@ -2,4 +2,8 @@
 *.txt
 *.fmt
 *.log
+
+*.zip
+*.rar
+
 latex-temp/
