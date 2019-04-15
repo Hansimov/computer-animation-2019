@@ -10,11 +10,11 @@
 let step = 0.01; // delta time
 let size = 15;
 let m = 1;  // mass
-let k = 3/step;  // Hooke constant
+let k = 5/step;  // Hooke constant
 let c = 0.4/step;  // damping constant
 let g = 9.8/step; // gravity constant
 let gap = 30; // gap between adjacent nodes
-let rownum = 20;
+let rownum = 10;
 let colnum = 30;
 let num = rownum*colnum;
 let nodes = [];
@@ -22,7 +22,7 @@ let aid = -1; // active node id
 
 let sx = 80;
 let tx = sx-20;
-let sy = 10;
+let sy = 30;
 let ss = 40;
 
 function setup() {
@@ -40,13 +40,13 @@ function setup() {
             }
         }
     }
-    stepSlider = createSlider(0.001, 1, 0.01, 0.001);
-    mSlider = createSlider(0.1, 10, 2, 0.1);
-    kSlider = createSlider(0.1, 1000, 3/step, 1);
-    cSlider = createSlider(0.1, 1000, 0.2/step,1);
+    // stepSlider = createSlider(0.001, 1, 0.01, 0.001);
+    mSlider = createSlider(1, 10, 2, 0.1);
+    kSlider = createSlider(100, 800, 5/step, 1);
+    cSlider = createSlider(30, 100, 0.4/step,1);
     gapSlider = createSlider(5, 100, 30, 1);
     gSlider = createSlider(1, 2000, 9.8/step, 1);
-    resetButton = createButton('Reset');
+    resetButton = createButton('<b>Reset</b>');
 
     resetButton.mousePressed(refreshPage);
     function refreshPage() {
@@ -61,8 +61,8 @@ function setup() {
     methodSelect.option(imText);
     methodSelect.option(trText);
 
-    stepSlider.position(sx,sy);
-    sy+=ss;
+    // stepSlider.position(sx,sy);
+    // sy+=ss;
     mSlider.position(sx,sy);
     sy+=ss;
     kSlider.position(sx,sy);
@@ -72,7 +72,7 @@ function setup() {
     gapSlider.position(sx,sy);
     sy+=ss;
     gSlider.position(sx,sy);
-    sy+=ss;
+    sy+=ss+20;
     resetButton.position(sx,sy);
     sy+=ss;
     methodSelect.position(sx,sy);
@@ -83,14 +83,14 @@ function draw() {
     textSize(20);
     fill(255,255,255);
     textAlign(RIGHT, TOP);
-    step = stepSlider.value();
+    // step = stepSlider.value();
     m = mSlider.value();
     k = kSlider.value();
     c = cSlider.value();
     gap = gapSlider.value();
     g = gSlider.value();
 
-    text('step', tx, stepSlider.y);
+    // text('step', tx, stepSlider.y);
     text('m', tx, mSlider.y);
     text('k', tx, kSlider.y);
     text('damp', tx, cSlider.y);
@@ -98,7 +98,7 @@ function draw() {
     text('g', tx, gSlider.y);
 
     textAlign(LEFT, TOP);
-    text(stepSlider.value(),tx+25+stepSlider.width, stepSlider.y);
+    // text(stepSlider.value(),tx+25+stepSlider.width, stepSlider.y);
     text(mSlider.value(),   tx+25+mSlider.width, mSlider.y);
     text(kSlider.value(),   tx+25+kSlider.width, kSlider.y);
     text(cSlider.value(),   tx+25+cSlider.width, cSlider.y);
@@ -156,11 +156,11 @@ function id2rc(id) {
 function exEuler(vx, ax) {
     return vx + ax * step;
 }
-function imEuler(vx, ax) {
-    return vx + ax * step;
+function imEuler(vx, ax, ax1, ax2, ax3) {
+    return vx + (ax*4+ax1*2+ax2*1)/7 * step;
 }
-function trapRule(vx, ax) {
-    return vx + ax * step;
+function trapRule(vx, ax, ax1, ax2, ax3) {
+    return vx + (ax*2+ax1+ax2+ax3*2)/6 * step;
 }
 
 function calcSpring(x1,y1,x2,y2) {
@@ -194,6 +194,9 @@ function Node(x=0,y=0,vx=0,vy=0,id=0,row=0,col=0) {
     this.vyn = vy;
 
     this.m = m;
+    this.v1 = createVector(0,0);
+    this.v2 = createVector(0,0);
+    this.v3 = createVector(0,0);
     this.id = id;
     this.size = size;
     this.row = row;
@@ -269,21 +272,25 @@ function Node(x=0,y=0,vx=0,vy=0,id=0,row=0,col=0) {
             this.xn  = exEuler(this.x, this.vx);
             this.yn  = exEuler(this.y, this.vy);
         } else if (methodSelect.value() == imText) {
-            this.vxn = imEuler(this.vx, this.a.x);
-            this.vyn = imEuler(this.vy, this.a.y);
-            this.xn  = imEuler(this.x, this.vx);
-            this.yn  = imEuler(this.y, this.vy);
+            this.vxn = exEuler(this.vx, this.a.x);
+            this.vyn = exEuler(this.vy, this.a.y);
+            this.xn  = imEuler(this.x, this.vx,this.v1.x,this.v2.x,this.v3.x);
+            this.yn  = imEuler(this.y, this.vy,this.v1.y,this.v2.y,this.v3.y);
         } else if (methodSelect.value() == imText) {
-            this.vxn = trapRule(this.vx, this.a.x);
-            this.vyn = trapRule(this.vy, this.a.y);
-            this.xn  = trapRule(this.x, this.vx);
-            this.yn  = trapRule(this.y, this.vy);
+            this.vxn = exEuler(this.vx, this.a.x);
+            this.vyn = exEuler(this.vy, this.a.y);
+            this.xn  = trapRule(this.x, this.vx,this.v1.x,this.v2.x,this.v3.x);
+            this.yn  = trapRule(this.y, this.vy,this.v1.y,this.v2.y,this.v3.y);
         } else {
             this.vxn = exEuler(this.vx, this.a.x);
             this.vyn = exEuler(this.vy, this.a.y);
             this.xn  = exEuler(this.x, this.vx);
             this.yn  = exEuler(this.y, this.vy);
         }
+
+        this.v3 = this.v2;
+        this.v2 = this.v1;
+        this.v1 = createVector(this.vx, this.vy);
     }
 
     this.display = function() {
@@ -301,6 +308,25 @@ function Node(x=0,y=0,vx=0,vy=0,id=0,row=0,col=0) {
         this.y = this.yn;
         this.vx = this.vxn;
         this.vy = this.vyn;
+
+        stroke(255,255,255);
+        if (this.row != 0) { // top
+            var nd = nodes[rc2id(this.row-1,this.col)];
+            line(this.x, this.y, nd.x, nd.y);
+        }
+        if (this.row != rownum-1) { // bottom
+            var nd = nodes[rc2id(this.row+1,this.col)];
+            line(this.x, this.y, nd.x, nd.y);
+        }
+        if (this.col != 0) { // left
+            var nd = nodes[rc2id(this.row,this.col-1)];
+            line(this.x, this.y, nd.x, nd.y);
+        }
+        if (this.col != colnum-1) { // right
+            var nd = nodes[rc2id(this.row,this.col+1)];
+            line(this.x, this.y, nd.x, nd.y);
+        }
+        noStroke();
     }
 }
 </script>

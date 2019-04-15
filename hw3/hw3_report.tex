@@ -10,7 +10,7 @@
 {\fs{14} \kaishu 于泽汉 \hspace{1em} \textsf{No.118039910141}}
 \end{center}
 
-在本次实验中，对于三种不同的数值积分方法，可以分析观察得到如下结论：
+\noindent 在本次实验中，对于三种不同的数值积分方法，可以分析观察得到如下结论：
 
 \begin{itemize}[leftmargin=2em, label={}]
 \item \textbf{常数加速：}显式欧拉法的常数加速效果较差；隐式欧拉法的常数加速效果也较差，因为它和显式的一样都是一阶的；梯形法则的常数加速效果很好，因为它是二阶的。
@@ -25,17 +25,28 @@
 
 \end{itemize}
 
+\vspace{\baselineskip}
 
-\begin{itemize}[leftmargin=2em, label={}]
+\begin{itemize}[leftmargin=*, label={}]
 
 \item 三种方法的实现效果和对应代码见 \texttt{hw3.html}。\\
 浏览器（推荐使用 Chrome）打开可查看动画，文本编辑器打开可查看代码。\\
 
+本次实验实现的功能包括：
 
+\begin{enumerate}[leftmargin=*]
 
+\item 三种不同的数值积分方法
+\item 自由调整各种参数
+\item 拖拽任意节点并实时反馈
 
+\end{enumerate}
+
+\begin{center}
+\includegraphics[width=0.8\textwidth]{images/euler.png}\\
+网格弹簧质点系统的模拟仿真以及用户界面
+\end{center}
 
 \end{itemize}
-
 
 \end{document}
