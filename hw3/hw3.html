@@ -1,23 +1,29 @@
 <html>
 <head>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.dom.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.dom.min.js"></script>
 </head>
 <body>
 
 <script>
 
-let size = 10;
+let step = 0.01; // delta time
+let size = 15;
 let m = 1;  // mass
-let k = 1;  // Hooke constant
-let d = 1;  // damping constant
-let g = 9.8; // gravity constant
-let rownum = 3;
-let colnum = 4;
+let k = 3/step;  // Hooke constant
+let c = 0.4/step;  // damping constant
+let g = 9.8/step; // gravity constant
+let gap = 30; // gap between adjacent nodes
+let rownum = 20;
+let colnum = 30;
 let num = rownum*colnum;
-// let num = 1;
 let nodes = [];
 let aid = -1; // active node id
+
+let sx = 80;
+let tx = sx-20;
+let sy = 10;
+let ss = 40;
 
 function setup() {
     createCanvas(window.innerWidth-10, window.innerHeight-20);
@@ -26,27 +32,143 @@ function setup() {
     for (let i=0; i<rownum; ++i) {
         for (let j=0; j<colnum; ++j) {
             id = rc2id(i,j);
-            console.log(id,i,j);
-            nodes[id] = new Node(i*100,j*100,0,0,id,i,j);
+            nodes[id] = new Node(j*gap+300,i*gap+100,0,0,id,i,j);
+            if (j==0 || j==colnum-1) {
+                nodes[id].fixed = true;
+            } else {
+                nodes[id].fixed = false;
+            }
         }
     }
+    stepSlider = createSlider(0.001, 1, 0.01, 0.001);
+    mSlider = createSlider(0.1, 10, 2, 0.1);
+    kSlider = createSlider(0.1, 1000, 3/step, 1);
+    cSlider = createSlider(0.1, 1000, 0.2/step,1);
+    gapSlider = createSlider(5, 100, 30, 1);
+    gSlider = createSlider(1, 2000, 9.8/step, 1);
+    resetButton = createButton('Reset');
+
+    resetButton.mousePressed(refreshPage);
+    function refreshPage() {
+        location.reload();
+    }
+
+    methodSelect = createSelect();
+    exText = 'Explicit Euler';
+    imText = 'Implicit Euler';
+    trText = 'Trapezoidal Rule';
+    methodSelect.option(exText);
+    methodSelect.option(imText);
+    methodSelect.option(trText);
+
+    stepSlider.position(sx,sy);
+    sy+=ss;
+    mSlider.position(sx,sy);
+    sy+=ss;
+    kSlider.position(sx,sy);
+    sy+=ss;
+    cSlider.position(sx,sy);
+    sy+=ss;
+    gapSlider.position(sx,sy);
+    sy+=ss;
+    gSlider.position(sx,sy);
+    sy+=ss;
+    resetButton.position(sx,sy);
+    sy+=ss;
+    methodSelect.position(sx,sy);
 }
 
 function draw() {
     background(51);
+    textSize(20);
+    fill(255,255,255);
+    textAlign(RIGHT, TOP);
+    step = stepSlider.value();
+    m = mSlider.value();
+    k = kSlider.value();
+    c = cSlider.value();
+    gap = gapSlider.value();
+    g = gSlider.value();
+
+    text('step', tx, stepSlider.y);
+    text('m', tx, mSlider.y);
+    text('k', tx, kSlider.y);
+    text('damp', tx, cSlider.y);
+    text('gap', tx, gapSlider.y);
+    text('g', tx, gSlider.y);
+
+    textAlign(LEFT, TOP);
+    text(stepSlider.value(),tx+25+stepSlider.width, stepSlider.y);
+    text(mSlider.value(),   tx+25+mSlider.width, mSlider.y);
+    text(kSlider.value(),   tx+25+kSlider.width, kSlider.y);
+    text(cSlider.value(),   tx+25+cSlider.width, cSlider.y);
+    text(gapSlider.value(), tx+25+gapSlider.width, gapSlider.y);
+    text(gSlider.value(),   tx+25+gSlider.width, gSlider.y);
+
     for (let i=0; i<num; ++i) {
-        nodes[i].update();
+        if (!nodes[i].fixed) {
+            nodes[i].update();
+        }
     }
     for (let i=0; i<num; ++i) {
         nodes[i].display();
     }
 }
 
+/*
+Numerical Methods for Second-Order ODE
+   https://math.oregonstate.edu/home/programs/undergrad/CalculusQuestStudyGuides/ode/second/so_num/so_num.html
+Euler's Method for First-Order ODE
+    https://math.oregonstate.edu/home/programs/undergrad/CalculusQuestStudyGuides/ode/first/euler/euler.html
+网格弹簧质点系统模拟（Spring-Mass System by Euler Integration）
+    http://www.cnblogs.com/shushen/p/5473264.html
+
+>> mx"+cx'+kx=mg
+>> x' = v
+=> mv'+cv+kx=mg
+=> v' = g-(cv-kx)/m
+
+1. Explicit Euler's Method:
+    x(k+1)=x(k)+step*v(k)
+    v(k+1)=v(k)+step*( g-(c*v(k)-k*x(k)/m )
+    x(0)=this.x
+    v(0)=0
+
+2. Implicit Euler's Method:
+    x(k+1)=x(k)+step*v(k+1)
+    v(k+1)  = v(k) + step*v(k+1)
+            = v(k) + step*( g-(c*v(k+1)-k*x(k+1))/m)
+            = v(k) + step*( g-(c*v(k+1)-k*(x(k)+step*v(k+1)))/m)
+            = v(k) + step*g - step*(c*v(k+1)-k*(x(k)+step*v(k+1)))/m
+            = v(k) + step*g - step/m*c*v(k+1) + step/m*k*(x(k)+step*v(k+1))
+            = v(k) + step*g - step/m*c*v(k+1) + step/m*k*x(k) + step/m*k*step*v(k+1)
+            = v(k) + step*g + step/m*k*x(k) + v(k+1)*(-step/m*c + step*step/m*k)
+  > v(k+1) = ( v(k) + step*g + step/m*k*x(k) ) / ( 1 + step/m*c - step*step/m*k)
+
+*/
+
 function rc2id(i,j) {
     return i*colnum+j;
 }
 function id2rc(id) {
     return [Math.floor((id+1)/rownum), id%rownum];
+}
+function exEuler(vx, ax) {
+    return vx + ax * step;
+}
+function imEuler(vx, ax) {
+    return vx + ax * step;
+}
+function trapRule(vx, ax) {
+    return vx + ax * step;
+}
+
+function calcSpring(x1,y1,x2,y2) {
+    let v1 = createVector(x1,y1);
+    let v2 = createVector(x2,y2);
+    let v12 = p5.Vector.sub(v2,v1);
+    let vg = p5.Vector.div(v12, v12.mag()).mult(gap);
+    return p5.Vector.sub(v12, vg).mult(k);
 }
 
 function mousePressed() {
@@ -101,57 +223,76 @@ function Node(x=0,y=0,vx=0,vy=0,id=0,row=0,col=0) {
         this.isMove = false;
     }
 
-    this.calcForce = function() {
+    this.calcAccel = function() {
         this.f = createVector(0,0);
-        this.xy = createVector(this.x, this.y);
-        let fG = createVector(0,-1).mult(m*g);
-        let fD = createVector(-this.vx, -this.vy).mult(d);
+        let fG = createVector(0,1).mult(m*g);
+        let fD = createVector(-this.vx, -this.vy).mult(c);
+        // let fD = createVector(0,0);
         let fT = createVector(0,0);
         let fB = createVector(0,0);
         let fL = createVector(0,0);
         let fR = createVector(0,0);
         if (this.row != 0) { // top
             var nd = nodes[rc2id(this.row-1,this.col)];
-            var ndxy = createVector(nd.x, nd.y);
-            fT = p5.Vector.sub(ndxy, this.xy).mult(k);
+            fT = calcSpring(this.x, this.y, nd.x, nd.y);
         }
         if (this.row != rownum-1) { // bottom
             var nd = nodes[rc2id(this.row+1,this.col)];
-            var ndxy = createVector(nd.x, nd.y);
-            fB = p5.Vector.sub(ndxy, this.xy).mult(k);
+            fB = calcSpring(this.x, this.y, nd.x, nd.y);
         }
         if (this.col != 0) { // left
             var nd = nodes[rc2id(this.row,this.col-1)];
-            var ndxy = createVector(nd.x, nd.y);
-            fT = p5.Vector.sub(ndxy, this.xy).mult(k);
+            fL = calcSpring(this.x, this.y, nd.x, nd.y);
         }
         if (this.col != colnum-1) { // right
             var nd = nodes[rc2id(this.row,this.col+1)];
-            var ndxy = createVector(nd.x, nd.y);
-            fB = p5.Vector.sub(ndxy, this.xy).mult(k);
+            fR = calcSpring(this.x, this.y, nd.x, nd.y);
         }
+
         this.f.add(fG).add(fD).add(fT).add(fB).add(fL).add(fR);
-        this.a = p5.Vector.div(this.f,this.m);
+        this.a = p5.Vector.div(this.f, this.m);
     }
 
     this.update = function() {
         this.hover();
-        this.calcForce();
+        this.calcAccel();
         if (this.isMove) {
             this.x = mouseX;
+            this.xn = mouseX;
             this.y = mouseY;
+            this.yn = mouseY;
         }
-        // this.vxn = exEuler1(this.a.x, this.vx);
-        // this.vyn = exEuler1(this.a.y, this.vy);
-        // this.xn = exEuler2(this.x, this.vx);
-        // this.yn = exEuler2(this.y, this.vy);
+
+        if (methodSelect.value() == exText) {
+            this.vxn = exEuler(this.vx, this.a.x);
+            this.vyn = exEuler(this.vy, this.a.y);
+            this.xn  = exEuler(this.x, this.vx);
+            this.yn  = exEuler(this.y, this.vy);
+        } else if (methodSelect.value() == imText) {
+            this.vxn = imEuler(this.vx, this.a.x);
+            this.vyn = imEuler(this.vy, this.a.y);
+            this.xn  = imEuler(this.x, this.vx);
+            this.yn  = imEuler(this.y, this.vy);
+        } else if (methodSelect.value() == imText) {
+            this.vxn = trapRule(this.vx, this.a.x);
+            this.vyn = trapRule(this.vy, this.a.y);
+            this.xn  = trapRule(this.x, this.vx);
+            this.yn  = trapRule(this.y, this.vy);
+        } else {
+            this.vxn = exEuler(this.vx, this.a.x);
+            this.vyn = exEuler(this.vy, this.a.y);
+            this.xn  = exEuler(this.x, this.vx);
+            this.yn  = exEuler(this.y, this.vy);
+        }
     }
 
     this.display = function() {
-        if (this.isMove) {
-            fill(0,255,0);
-        } else if (this.isHover) {
+        if (this.fixed) {
+            fill(255, 0,255);
+        } else if (this.isMove) {
             fill(0,255,255);
+        } else if (this.isHover) {
+            fill(255,255,0);
         } else {
             fill(255);
         }

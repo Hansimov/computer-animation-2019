@@ -1,0 +1,41 @@
+\documentclass[a4paper, 12pt]{article}
+\input{hw-settings.tex}
+
+\begin{document}
+\begin{center}
+{\fs{15}\bfseries {计算机动画原理与技术 ~作业 3 ~报告}}
+
+\vspace{0.5\baselineskip}
+
+{\fs{14} \kaishu 于泽汉 \hspace{1em} \textsf{No.118039910141}}
+\end{center}
+
+在本次实验中，对于三种不同的数值积分方法，可以分析观察得到如下结论：
+
+\begin{itemize}[leftmargin=2em, label={}]
+\item \textbf{常数加速：}显式欧拉法的常数加速效果较差；隐式欧拉法的常数加速效果也较差，因为它和显式的一样都是一阶的；梯形法则的常数加速效果很好，因为它是二阶的。
+
+\item \textbf{位置依赖性：}显式欧拉法的位置依赖性很差，受不同参数变化影响较大，因此很不稳定；隐式欧拉法的位置依赖性稍好一些，可以保证稳定，但是受到一定程度的衰弱；梯形法则的位置依赖性最佳，不仅稳定，而且没有衰弱。
+
+\item \textbf{速度依赖性：}显式欧拉法的速度依赖性较好，在满足一定条件下是稳定的；隐式欧拉法的速度依赖性很好，不过是单调的；梯形法则的速度依赖性最佳，稳定非单调。
+
+\item \textbf{运算速度：}显式欧拉法的运算速度最快；隐式欧拉法和梯形法则的运算速度要慢一些。
+
+\item \textbf{易实现性：}显式欧拉法最容易实现；隐式欧拉法和梯形法则都要复杂很多，并且实现时很容易出错。
+
+\end{itemize}
+
+
+\begin{itemize}[leftmargin=2em, label={}]
+
+\item 三种方法的实现效果和对应代码见 \texttt{hw3.html}。\\
+浏览器（推荐使用 Chrome）打开可查看动画，文本编辑器打开可查看代码。\\
+
+
+
+
+
+\end{itemize}
+
+
+\end{document}
