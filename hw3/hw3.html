@@ -6,19 +6,161 @@
 <body>
 
 <script>
+
+let size = 10;
+let m = 1;  // mass
+let k = 1;  // Hooke constant
+let d = 1;  // damping constant
+let g = 9.8; // gravity constant
+let rownum = 3;
+let colnum = 4;
+let num = rownum*colnum;
+// let num = 1;
+let nodes = [];
+let aid = -1; // active node id
+
 function setup() {
     createCanvas(window.innerWidth-10, window.innerHeight-20);
     noStroke();
     background(51);
-}
-function draw() {
-    // clear();
-    if (mouseIsPressed) {
-        fill();
-    } else {
-        fill(120);
+    for (let i=0; i<rownum; ++i) {
+        for (let j=0; j<colnum; ++j) {
+            id = rc2id(i,j);
+            console.log(id,i,j);
+            nodes[id] = new Node(i*100,j*100,0,0,id,i,j);
+        }
     }
-    ellipse(mouseX, mouseY, 80, 80);
+}
+
+function draw() {
+    background(51);
+    for (let i=0; i<num; ++i) {
+        nodes[i].update();
+    }
+    for (let i=0; i<num; ++i) {
+        nodes[i].display();
+    }
+}
+
+function rc2id(i,j) {
+    return i*colnum+j;
+}
+function id2rc(id) {
+    return [Math.floor((id+1)/rownum), id%rownum];
+}
+
+function mousePressed() {
+    for (let i=0; i<num; ++i) {
+        nodes[i].press();
+    }
+}
+
+function mouseReleased() {
+    for (let i=0; i<num; ++i) {
+        nodes[i].release();
+    }
+}
+
+function Node(x=0,y=0,vx=0,vy=0,id=0,row=0,col=0) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.xn = x;
+    this.yn = y;
+    this.vxn = vx;
+    this.vyn = vy;
+
+    this.m = m;
+    this.id = id;
+    this.size = size;
+    this.row = row;
+    this.col = col;
+
+    this.hover = function() {
+        if (aid!=-1 && aid!=this.id) return ;
+        let dis = createVector(this.x-mouseX, this.y-mouseY);
+        if (dis.mag() < this.size/2) {
+            this.isHover = true;
+            aid = this.id;
+        } else {
+            this.isHover = false;
+            aid = -1;
+        }
+    }
+
+    this.press = function() {
+        if (this.isHover) {
+            this.isMove = true;
+        } else {
+            this.isMove = false;
+        }
+    }
+
+    this.release = function() {
+        this.isMove = false;
+    }
+
+    this.calcForce = function() {
+        this.f = createVector(0,0);
+        this.xy = createVector(this.x, this.y);
+        let fG = createVector(0,-1).mult(m*g);
+        let fD = createVector(-this.vx, -this.vy).mult(d);
+        let fT = createVector(0,0);
+        let fB = createVector(0,0);
+        let fL = createVector(0,0);
+        let fR = createVector(0,0);
+        if (this.row != 0) { // top
+            var nd = nodes[rc2id(this.row-1,this.col)];
+            var ndxy = createVector(nd.x, nd.y);
+            fT = p5.Vector.sub(ndxy, this.xy).mult(k);
+        }
+        if (this.row != rownum-1) { // bottom
+            var nd = nodes[rc2id(this.row+1,this.col)];
+            var ndxy = createVector(nd.x, nd.y);
+            fB = p5.Vector.sub(ndxy, this.xy).mult(k);
+        }
+        if (this.col != 0) { // left
+            var nd = nodes[rc2id(this.row,this.col-1)];
+            var ndxy = createVector(nd.x, nd.y);
+            fT = p5.Vector.sub(ndxy, this.xy).mult(k);
+        }
+        if (this.col != colnum-1) { // right
+            var nd = nodes[rc2id(this.row,this.col+1)];
+            var ndxy = createVector(nd.x, nd.y);
+            fB = p5.Vector.sub(ndxy, this.xy).mult(k);
+        }
+        this.f.add(fG).add(fD).add(fT).add(fB).add(fL).add(fR);
+        this.a = p5.Vector.div(this.f,this.m);
+    }
+
+    this.update = function() {
+        this.hover();
+        this.calcForce();
+        if (this.isMove) {
+            this.x = mouseX;
+            this.y = mouseY;
+        }
+        // this.vxn = exEuler1(this.a.x, this.vx);
+        // this.vyn = exEuler1(this.a.y, this.vy);
+        // this.xn = exEuler2(this.x, this.vx);
+        // this.yn = exEuler2(this.y, this.vy);
+    }
+
+    this.display = function() {
+        if (this.isMove) {
+            fill(0,255,0);
+        } else if (this.isHover) {
+            fill(0,255,255);
+        } else {
+            fill(255);
+        }
+        ellipse(this.x, this.y, this.size, this.size);
+        this.x = this.xn;
+        this.y = this.yn;
+        this.vx = this.vxn;
+        this.vy = this.vyn;
+    }
 }
 </script>
 </body>
