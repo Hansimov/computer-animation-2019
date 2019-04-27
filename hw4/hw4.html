@@ -2,18 +2,142 @@
 <head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/p5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.dom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.9.0/math.min.js"></script>
+
 </head>
 <body>
 
 <script>
+let dot = math.dot;
+let mult = math.multiply;
+let add = math.add;
+
 function setup() {
     createCanvas(window.innerWidth-10, window.innerHeight-20);
     noStroke();
     background(51);
+
 }
+let r = 100;
+let [cx,cy] = [400,200];
+let m = 1;
+let d = -0.0;
+let g = [0, 9.8];
+let p = [0, -r];
+let v = [5,0];
+let a = [0,0];
+let dt = 0.2;
+let h = dt;
 
 function draw() {
     background(51);
+    translate(cx,cy);
+
+    noFill();
+    stroke(255,0,255);
+    strokeWeight(3);
+    circle(0,0, r*2);
+
+    // a = calcAcc(p, v, g);
+    // v = calcVel(v, a);
+    // p = calcPos(p, v);
+
+    let [pnew,vnew] = rk(p,v);
+
+    noStroke();
+    fill(0,255,255);
+    circle(p[0],p[1], 10);
+
+    p = pnew;
+    v = vnew;
+
+    // console.log(p,v);
+    // console.log(0.5*dot(v,v)+g[1]*(2*r-p[1]));
+}
+
+/*  Lagrange multiplier
+    f = mg
+
+    lam = -(f.*x + m*x'*x') / (x.*x)
+        = -(dot(f,p) + m*dot(v,v)) / dot(p,p)
+        = -(mult(dot(g,p),m) + mult(dot(v,v),m)) / dot(p,p)
+        = mult( dot(g,p)+dot(v,v) , -m/dot(p,p) )
+        =  ( dot(g,p)+dot(v,v) ) * (-m/dot(p,p))
+
+    fc  = lam*x
+        = mult(p, lam)
+
+    x"  = (fc+f)/m = fc/m + g
+        = add(mult(p, lam/m), g)
+        = add( mult(p, ( dot(g,p)+dot(v,v) ) * (-1/dot(p,p)) ), g)
+        = add(mult(p, -(dot(g,p)+dot(v,v))/dot(p,p)),g)
+*/
+
+
+/*  Implicit Euler
+    dx = h*(v0+dv)
+    dv = h*(f(x0+dx, v0+dv))
+    f(x0+dx, v0+dv) = f0 + (f//x)*dx + ('f/'v')*dv
+
+    dv = h*(f0+h*(f//x)*v0+(f//t)) / (I-h*(f//v)-h*h*(f//x))
+    dx = h*(v0+dv)
+*/
+
+
+// https://math.stackexchange.com/a/2764588
+// https://math.stackexchange.com/a/2626225
+// https://www.myphysicslab.com/explain/runge-kutta-en.html
+// https://www.myphysicslab.com/springs/single-spring-en.html
+// https://www.myphysicslab.com/explain/classify-diff-eq-en.html
+// https://www.myphysicslab.com/explain/numerical-solution-en.html
+
+
+// function calcAcc(p, v) {
+//     a = add(mult(p, -(dot(g,p)+dot(v,v))/dot(p,p)),g, mult(v,-d/m));
+//     return a;
+// }
+
+
+// [v,a] = f(p,v)
+function f(p,v) {
+    // console.log(v, add(mult(p, -(dot(g,p)+dot(v,v))/dot(p,p)), g, mult(v,-d/m)));
+    return [v, add(mult(p, -(dot(g,p)+dot(v,v))/dot(p,p)), g, mult(v,-d/m))];
+}
+
+/* Runge Kutta without time
+
+    x1' = f1(x1, x2, ..., xm)
+    x2' = f2(x1, x2, ..., xm)
+    ...
+    xm' = fm(x1, x2, ..., xm)
+
+    k1 = f(xn) 
+    k2 = f(xn + h⁄2*k1) 
+    k3 = f(xn + h⁄2*k2)
+    k4 = f(xn + h*k3)
+
+    xn+1 = xn + h⁄6*(k1 + 2*k2 + 2*k3 + k4)
+
+*/
+
+function rk(p,v) {
+    let k1 = f(p,v);
+    let tmp1 = add([p,v],mult(h/2,k1))
+    let k2 = f(tmp1[0], tmp1[1]);
+    let tmp2 = add([p,v],mult(h/2,k2));
+    let k3 = f(tmp2[0], tmp2[1]);
+    let tmp3 = add([p,v],mult(h,k3));
+    let k4 = f(tmp3[0],tmp3[1]);
+    return add([p,v], mult(h/6, add(k1,mult(2,k2),mult(2,k3),k4)));
+}
+
+
+
+function calcVel(v, a) {
+    return add(v, mult(a,dt));
+}
+function calcPos(p, v) {
+    return add(p, mult(v,dt));
 }
 
 </script>

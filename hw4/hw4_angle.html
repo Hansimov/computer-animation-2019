@@ -1,0 +1,72 @@
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.dom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.9.0/math.min.js"></script>
+
+</head>
+<body>
+
+<script>
+let dot     = math.dot;
+let mult    = math.multiply;
+let add     = math.add;
+let pi      = math.pi;
+let cos     = math.cos;
+let sin     = math.sin;
+let norm    = math.norm;
+
+function setup() {
+    createCanvas(window.innerWidth-10, window.innerHeight-20);
+    noStroke();
+    background(51);
+
+}
+let r = 100;
+let [cx,cy] = [400,300];
+let m = 1;
+let d = -0.0;
+// let p = [0, -r];
+// let v = [10,0];
+// let a = [0,0];
+// let g = [0, 9.8];
+
+let ang = -pi/2;
+let angv = 10 / r;
+let anga = 0;
+let angg = 9.8;
+
+let dt = 0.2;
+
+function draw() {
+    background(51);
+    translate(cx,cy);
+
+    noFill();
+    stroke(255,0,255);
+    strokeWeight(3);
+    circle(0,0, r*2);
+
+    anga = calcAngAcc(ang, angv, angg);
+    angv = calcAngVel(angv, anga);
+    ang  = calcAng(ang, angv);
+
+    noStroke();
+    fill(0,255,255);
+    circle(r*cos(ang), r*sin(ang), 10);
+
+}
+
+function calcAngAcc(ang, angv, angg) {
+    return (angg * cos(ang) - angv * d/m) / r;
+}
+function calcAngVel(angv, anga) {
+    return angv + anga * dt;
+}
+function calcAng(ang, angv) {
+    return ang + angv * dt;
+}
+
+</script>
+</body>
+</html>
