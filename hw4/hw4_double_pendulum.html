@@ -1,0 +1,126 @@
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.dom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.9.0/math.min.js"></script>
+
+</head>
+<body>
+
+<script>
+let dot = math.dot;
+let mult = math.multiply;
+let add = math.add;
+let abs = math.abs;
+
+function setup() {
+    createCanvas(window.innerWidth-10, window.innerHeight-20);
+    noStroke();
+    background(51);
+
+}
+
+// let r = 100;
+let [cx,cy] = [600,600];
+// let m1 = 1;
+// let m2 = 1;
+// let d = -0.0;
+let g = 9.8;
+// let p = [0, -r];
+// let v = [10,0];
+// let a = [0,0];
+// let dt = 0.05;
+// let h = dt;
+
+let a = 0.01;
+let para = [];
+let xlim = 500;
+let ylim = 500;
+let xstep = 0.5;
+for (let i=-xlim; i<xlim; i+=xstep) {
+    if (abs(a*i*i)>ylim) {
+        continue;
+    }
+    para.push([i,-a*i*i]);
+}
+
+function draw() {
+    background(51);
+    translate(cx,cy);
+
+    noFill();
+    stroke(255,0,255);
+    strokeWeight(1);
+
+    beginShape();
+    for (let i=0; i<para.length;i++)
+        curveVertex(para[i][0], para[i][1]);
+    endShape();
+
+    noStroke();
+    fill(0,255,255);
+    circle(para[0][0],para[0][1],10);
+
+}
+
+/*  Lagrange multiplier
+
+    x1 = u
+    y1 = a*u*u
+    x2 = u + r*sin(w)
+    y2 = a*u*u - r*cos(w)
+
+    ...
+
+    u" + m2/(m1+m2)*r*w" + 2*g*a*u = 0
+    u" + r*w" + g*w = 0
+
+    u" = -(1+m/M)*2*g*a*u + m/M*g*w
+    w" = (M+m)/(M*r)*(2*g*a*u-g*w)
+
+    [u",w"] = f(u,w)
+
+    ud = u'
+    wd = w'
+    u' = u' + u"*h
+    w' = w' + w"*h
+*/
+
+
+
+function f(u,w) {
+    return -(1+m/M)*2*g*a*u + m/M*g*w, (M+m)/(M*r)*(2*g*a*u-g*w)
+}
+
+/* Runge Kutta without time
+
+    x1' = f1(x1, x2, ..., xm)
+    x2' = f2(x1, x2, ..., xm)
+    ...
+    xm' = fm(x1, x2, ..., xm)
+
+    k1 = f(xn) 
+    k2 = f(xn + h⁄2*k1) 
+    k3 = f(xn + h⁄2*k2)
+    k4 = f(xn + h*k3)
+
+    xn+1 = xn + h⁄6*(k1 + 2*k2 + 2*k3 + k4)
+
+*/
+
+function rk(p,v) {
+    let k1 = f(p,v);
+    let tmp1 = add([p,v],mult(h/2,k1))
+    let k2 = f(tmp1[0], tmp1[1]);
+    let tmp2 = add([p,v],mult(h/2,k2));
+    let k3 = f(tmp2[0], tmp2[1]);
+    let tmp3 = add([p,v],mult(h,k3));
+    let k4 = f(tmp3[0],tmp3[1]);
+    return add([p,v], mult(h/6, add(k1,mult(2,k2),mult(2,k3),k4)));
+}
+
+
+
+</script>
+</body>
+</html>
