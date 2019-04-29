@@ -12,37 +12,45 @@ let dot = math.dot;
 let mult = math.multiply;
 let add = math.add;
 let abs = math.abs;
+let sqrt = math.sqrt;
+let pi = math.pi;
 
+let wwidth = window.innerWidth-10;
+let wheight = window.innerHeight-20;
 function setup() {
-    createCanvas(window.innerWidth-10, window.innerHeight-20);
+    createCanvas(wwidth, wheight);
     noStroke();
     background(51);
 
 }
 
-// let r = 100;
-let [cx,cy] = [600,600];
-// let m1 = 1;
-// let m2 = 1;
+let r = 150;
+let [cx,cy] = [wwidth/2,wheight/3*2];
+let m1 = 10;
+let m2 = 10;
 // let d = -0.0;
-let g = 9.8;
-// let p = [0, -r];
-// let v = [10,0];
-// let a = [0,0];
-// let dt = 0.05;
-// let h = dt;
+let g = 98;
+
+let dt = 0.01;
+let h = dt;
 
 let a = 0.01;
 let para = [];
-let xlim = 500;
-let ylim = 500;
+let xlim = wwidth/4;
+let ylim = wheight/2;
 let xstep = 0.5;
+
+if (abs(a*xlim*xlim)>ylim) {
+    xlim = sqrt(ylim/a);
+}
 for (let i=-xlim; i<xlim; i+=xstep) {
-    if (abs(a*i*i)>ylim) {
-        continue;
-    }
     para.push([i,-a*i*i]);
 }
+
+let u = xlim;
+let w = 0;
+let ud = 0;
+let wd = 0;
 
 function draw() {
     background(51);
@@ -57,11 +65,23 @@ function draw() {
         curveVertex(para[i][0], para[i][1]);
     endShape();
 
+    p1 = uw2xy1(u,w);
+    p2 = uw2xy2(u,w);
+
+    stroke(255,255,0);
+    strokeWeight(3);
+    line(p1[0],p1[1],p2[0],p2[1]);
+
     noStroke();
     fill(0,255,255);
+    circle(p1[0], p1[1], 10);
+    circle(p2[0], p2[1], 10);
 
-    circle(para[0][0],para[0][1],10);
 
+    // [ud,wd,u,w] = rk(ud,wd,u,w);
+    [ud,wd,u,w] = eu(ud,wd,u,w);
+    p1 = uw2xy1(u,w);
+    p2 = uw2xy2(u,w);
 }
 
 /*  Lagrange multiplier
@@ -87,46 +107,56 @@ function draw() {
     w' = w' + w"*h
 */
 
-function u2xy(u){
-    return [u, a*u*u];
+function uw2xy1(u,w){
+    return [u, -a*u*u];
+}
+function uw2xy2(u, w){
+    return [u + r*sin(w), -a*u*u + r*cos(w)];
 }
 
-function f(u,w) {
-    return [-(1+m/M)*2*g*a*u + m/M*g*w, (M+m)/(M*r)*(2*g*a*u-g*w)];
+function uw2uwdd(u,w) {
+    return [-(1+m2/m1)*2*g*a*u + m2/m1*g*w, (m1+m2)/(m1*r)*(2*g*a*u-g*w)];
+}
+// function uwdd2uwd(udd,wdd,ud,wd,hh){
+//     return [ud+udd*h, wd+wdd*h];
+// }
+// function uwd2uw(ud,ud,u,w,hh) {
+//     return [u+ud*hh, w+wd*hh];
+// }
+// function uwdd2uw(udd,wdd,ud,wd,u,w,hh) {
+//     let [ud_,wd_] = uwdd2uwd(udd,wdd,ud,wd,hh);
+//     return uwd2uw(ud_,wd_,u,w,hh);
+// }
+
+//  [ud,wd,u,w] = rk(ud,wd,u,w)
+//      [udd,wdd] = uw2wdd(u,w)
+//      [ud,wd] = uwdd2uwd(udd,wdd,ud,wd,hh)
+//  k(i): [udd,wdd,ud,wd]
+//        [udd,wdd,ud,wd] = f(ud,wd,u,w)
+//  k(i)   = f(ud,wd,u,w)
+//  tmp(i) = [ud,wd,u,w] + ki * hhi
+//  k(i+1) = f(tmp(i))
+function f(ud,wd,u,w) {
+    let [u_,w_] = uw2uwdd(u,w);
+    return [ud,wd,u_,w_];
+}
+function rk(ud,wd,u,w) {
+    let k1 = f(ud,wd,u,w);
+    let tmp1 = add([ud,wd,u,w], mult(k1,h/2));
+    let k2 = f(...tmp1);
+    let tmp2 = add([ud,wd,u,w], mult(k2,h/2));
+    let k3 = f(...tmp2);
+    let tmp3 = add([ud,wd,u,w], mult(k3,h));
+    let k4 = f(...tmp3);
+    return add([ud,wd,u,w], mult(add(k1,mult(2,k2),mult(2,k3),k4),h/6));
 }
 
-/* Runge Kutta without time
-
-    x1' = f1(x1, x2, ..., xm)
-    x2' = f2(x1, x2, ..., xm)
-    ...
-    xm' = fm(x1, x2, ..., xm)
-
-    k1 = f(xn) 
-    k2 = f(xn + h⁄2*k1) 
-    k3 = f(xn + h⁄2*k2)
-    k4 = f(xn + h*k3)
-
-    xn+1 = xn + h⁄6*(k1 + 2*k2 + 2*k3 + k4)
-
-*/
-// [u",w"] = f(u,w)
-// [u',w'] = uw(u",w")
-function uwd(udd,wdd,h) {
-    return ud
+function eu(ud,wd,u,w){
+    let [udd,wdd] = uw2uwdd(u,w);
+    let [ud_,wd_] = [ud+h*udd, wd+h*wdd];
+    let [u_,w_] = [u+h*ud_,w+h*wd_];
+    return [ud_,wd_,u_,w_];
 }
-function rk(u,w) {
-    let k1 = f(u,w);
-    let tmp1 = add([u,w],mult(h/2,k1))
-    let k2 = f(tmp1[0], tmp1[1]);
-    let tmp2 = add([u,w],mult(h/2,k2));
-    let k3 = f(tmp2[0], tmp2[1]);
-    let tmp3 = add([u,w],mult(h,k3));
-    let k4 = f(tmp3[0],tmp3[1]);
-    return add([u,w], mult(h/6, add(k1,mult(2,k2),mult(2,k3),k4)));
-}
-
-
 
 </script>
 </body>
