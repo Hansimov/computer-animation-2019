@@ -100,7 +100,6 @@ function draw() {
 
 // [v,a] = f(p,v)
 function f(p,v) {
-    // console.log(v, add(mult(p, -(dot(g,p)+dot(v,v))/dot(p,p)), g, mult(v,-d/m)));
     return [v, add(mult(p, -(dot(g,p)+dot(v,v))/dot(p,p)), g, mult(v,-d/m))];
 }
 
@@ -129,15 +128,6 @@ function rk(p,v) {
     let tmp3 = add([p,v],mult(h,k3));
     let k4 = f(tmp3[0],tmp3[1]);
     return add([p,v], mult(h/6, add(k1,mult(2,k2),mult(2,k3),k4)));
-}
-
-
-
-function calcVel(v, a) {
-    return add(v, mult(a,dt));
-}
-function calcPos(p, v) {
-    return add(p, mult(v,dt));
 }
 
 </script>

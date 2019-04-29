@@ -59,6 +59,7 @@ function draw() {
 
     noStroke();
     fill(0,255,255);
+
     circle(para[0][0],para[0][1],10);
 
 }
@@ -86,10 +87,12 @@ function draw() {
     w' = w' + w"*h
 */
 
-
+function u2xy(u){
+    return [u, a*u*u];
+}
 
 function f(u,w) {
-    return -(1+m/M)*2*g*a*u + m/M*g*w, (M+m)/(M*r)*(2*g*a*u-g*w)
+    return [-(1+m/M)*2*g*a*u + m/M*g*w, (M+m)/(M*r)*(2*g*a*u-g*w)];
 }
 
 /* Runge Kutta without time
@@ -107,16 +110,20 @@ function f(u,w) {
     xn+1 = xn + h⁄6*(k1 + 2*k2 + 2*k3 + k4)
 
 */
-
-function rk(p,v) {
-    let k1 = f(p,v);
-    let tmp1 = add([p,v],mult(h/2,k1))
+// [u",w"] = f(u,w)
+// [u',w'] = uw(u",w")
+function uwd(udd,wdd,h) {
+    return ud
+}
+function rk(u,w) {
+    let k1 = f(u,w);
+    let tmp1 = add([u,w],mult(h/2,k1))
     let k2 = f(tmp1[0], tmp1[1]);
-    let tmp2 = add([p,v],mult(h/2,k2));
+    let tmp2 = add([u,w],mult(h/2,k2));
     let k3 = f(tmp2[0], tmp2[1]);
-    let tmp3 = add([p,v],mult(h,k3));
+    let tmp3 = add([u,w],mult(h,k3));
     let k4 = f(tmp3[0],tmp3[1]);
-    return add([p,v], mult(h/6, add(k1,mult(2,k2),mult(2,k3),k4)));
+    return add([u,w], mult(h/6, add(k1,mult(2,k2),mult(2,k3),k4)));
 }
 
 
