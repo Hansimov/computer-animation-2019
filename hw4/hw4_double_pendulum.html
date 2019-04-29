@@ -24,14 +24,14 @@ function setup() {
 
 }
 
-let r = 150;
+let r = 30;
 let [cx,cy] = [wwidth/2,wheight/3*2];
-let m1 = 10;
-let m2 = 10;
+let m1 = 100;
+let m2 = 1;
 // let d = -0.0;
-let g = 98;
+let g = 9.8;
 
-let dt = 0.01;
+let dt = 0.1;
 let h = dt;
 
 let a = 0.01;
@@ -78,8 +78,8 @@ function draw() {
     circle(p2[0], p2[1], 10);
 
 
-    // [ud,wd,u,w] = rk(ud,wd,u,w);
-    [ud,wd,u,w] = eu(ud,wd,u,w);
+    [ud,wd,u,w] = rk(ud,wd,u,w);
+    // [ud,wd,u,w] = eu(ud,wd,u,w);
     p1 = uw2xy1(u,w);
     p2 = uw2xy2(u,w);
 }
@@ -137,8 +137,8 @@ function uw2uwdd(u,w) {
 //  tmp(i) = [ud,wd,u,w] + ki * hhi
 //  k(i+1) = f(tmp(i))
 function f(ud,wd,u,w) {
-    let [u_,w_] = uw2uwdd(u,w);
-    return [ud,wd,u_,w_];
+    let [udd,wdd] = uw2uwdd(u,w);
+    return [udd,wdd,ud,wd];
 }
 function rk(ud,wd,u,w) {
     let k1 = f(ud,wd,u,w);
