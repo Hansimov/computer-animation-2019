@@ -17,43 +17,109 @@ let pi = math.pi;
 
 let wwidth = window.innerWidth-10;
 let wheight = window.innerHeight-20;
-function setup() {
-    createCanvas(wwidth, wheight);
-    noStroke();
-    background(51);
 
-}
+let sx = 80;
+let tx = sx-20;
+let sy = 30;
+let ss = 40;
 
-let r = 30;
 let [cx,cy] = [wwidth/2,wheight/3*2];
-let m1 = 100;
-let m2 = 1;
+let m1 = 1;
+let m2 = 0;
 // let d = -0.0;
 let g = 9.8;
+let a = 0.005;
+let r = 30;
 
-let dt = 0.1;
-let h = dt;
+let h = 0.1;
 
-let a = 0.01;
-let para = [];
-let xlim = wwidth/4;
+// let xlim = wwidth/3;
 let ylim = wheight/2;
-let xstep = 0.5;
+let xstep = 0.1;
 
-if (abs(a*xlim*xlim)>ylim) {
+let para = [];
+function updatePara() {
     xlim = sqrt(ylim/a);
+    para = [];
+    for (let i=-xlim; i<xlim; i+=xstep) {
+        para.push([i,-a*i*i]);
+    }
 }
-for (let i=-xlim; i<xlim; i+=xstep) {
-    para.push([i,-a*i*i]);
-}
+
+updatePara();
 
 let u = xlim;
 let w = 0;
 let ud = 0;
 let wd = 0;
 
+
+function setup() {
+    createCanvas(wwidth, wheight);
+    noStroke();
+    background(51);
+
+    m1Slider = createSlider(1, 100, 1, 0.1);
+    m2Slider = createSlider(1, 100, 1, 0.1);
+    gSlider = createSlider(0, 100, 9.8, 0.1);
+    aSlider = createSlider(0.001, 0.05, 0.005, 0.001);
+    rSlider = createSlider(1, 500, 100, 1);
+    hSlider = createSlider(0.001, 1, 0.01, 0.001);
+
+    resetButton = createButton('<b>Reset</b>');
+    resetButton.mousePressed(refreshPage);
+    function refreshPage() {
+        location.reload();
+    }
+
+    m1Slider.position(sx,sy);
+    sy+=ss;
+    m2Slider.position(sx,sy);
+    sy+=ss;
+    gSlider.position(sx,sy);
+    sy+=ss;
+    aSlider.position(sx,sy);
+    sy+=ss;
+    rSlider.position(sx,sy);
+    sy+=ss;
+    hSlider.position(sx,sy);
+
+    sy+=ss+20;
+    resetButton.position(sx,sy);
+    sy+=ss;
+
+}
+
 function draw() {
     background(51);
+
+    textSize(20);
+    fill(255,255,255);
+    textAlign(RIGHT, TOP);
+    m1 = m1Slider.value();
+    m2 = m2Slider.value();
+    g = gSlider.value();
+    if (a != aSlider.value()) {
+        a = aSlider.value();
+        updatePara();
+    }
+    r = rSlider.value();
+
+    text('m1', tx, m1Slider.y);
+    text('m2', tx, m2Slider.y);
+    text('g', tx, gSlider.y);
+    text('a', tx, aSlider.y);
+    text('r', tx, rSlider.y);
+    text('dt', tx, hSlider.y);
+
+    textAlign(LEFT, TOP);
+    text(m1Slider.value(),   tx+25+m1Slider.width, m1Slider.y);
+    text(m2Slider.value(),   tx+25+m2Slider.width, m2Slider.y);
+    text(gSlider.value(),   tx+25+gSlider.width, gSlider.y);
+    text(aSlider.value(),   tx+25+aSlider.width, aSlider.y);
+    text(rSlider.value(),   tx+25+rSlider.width, rSlider.y);
+    text(hSlider.value(),   tx+25+hSlider.width, hSlider.y);
+
     translate(cx,cy);
 
     noFill();
@@ -74,8 +140,9 @@ function draw() {
 
     noStroke();
     fill(0,255,255);
-    circle(p1[0], p1[1], 10);
-    circle(p2[0], p2[1], 10);
+    circle(p1[0], p1[1], 15);
+    fill(255,125,125);
+    circle(p2[0], p2[1], 15);
 
 
     [ud,wd,u,w] = rk(ud,wd,u,w);
